@@ -6,6 +6,7 @@ from datetime import datetime
 import pandas as pd
 
 from _classifier import get_image_predictions, is_dog_in_image_predictions
+from _misc import ensure_directory_exists
 
 DATA_DIR = os.path.join('data')
 IMAGE_PATH = os.path.join(DATA_DIR, 'screen-captures')
@@ -15,13 +16,6 @@ PREDICTIONS_CSV_PATH = os.path.join(DATA_DIR, 'predictions.csv')
 cap = cv2.VideoCapture(0)
 
 df = None
-
-
-def ensure_directory_exists(directory):
-    try:
-        return os.makedirs(directory)
-    except:
-        return None
     
 def get_dataframe():
     global df
