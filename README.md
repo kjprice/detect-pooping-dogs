@@ -7,3 +7,9 @@ To do this in Visual studio, follow these steps (found [here](https://stackoverf
 4. Use "sudo code" to open vscode
 5. It will give warning not to run as a root user
 6. Ignore the warning and run the file , you will not get the "Abort trap: 6" error anymore.
+
+### Notes
+
+To use specific pretrained networks: https://keras.io/api/applications/
+
+I had to crop the images (to be square) and resize the images (to be 224/224) to work with ResNet50
