@@ -10,6 +10,9 @@ import os
 
 model = ResNet50(weights='imagenet')
 
+# This is necessary when running flask per https://github.com/keras-team/keras/issues/6462#issuecomment-319232504
+model._make_predict_function()
+
 def name_exists_in_hypernym(name, syn):
     hypernyms = syn.hypernyms()
     
@@ -49,12 +52,6 @@ def is_dog_in_image_predictions(image_predictions):
 
     
 def get_image_predictions(img_raw):
-    # image_filepath = get_test_image_path(image_name)
-        
-    # img = image.load_img(image_filepath, target_size=(224, 224))
-
-    # x = image.img_to_array(img)
-
     img = cv2.resize(img_raw, (224, 224))
 
     x = img
