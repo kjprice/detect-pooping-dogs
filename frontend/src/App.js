@@ -22,7 +22,10 @@ function getStream(device) {
 
   // TODO: Set HD video size
   const constraints = {
-    video: {deviceId: {exact: deviceId} }
+    video: {
+      deviceId: {exact: deviceId},
+      width: {min: 1280}, height: {min: 720}
+    }
   };
   return navigator.mediaDevices.getUserMedia(constraints)
 }
