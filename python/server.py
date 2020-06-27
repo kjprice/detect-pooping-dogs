@@ -55,4 +55,4 @@ def receiveNeweImage():
 
     is_dog = scan_for_dogs(image)
 
-    return is_dog
+    return image_name
