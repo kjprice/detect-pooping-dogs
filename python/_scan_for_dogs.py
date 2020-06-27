@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-import time, math, glob, os
-import cv2
+import math, glob, os
 from datetime import datetime
+
+import cv2
 
 import pandas as pd
 
@@ -13,12 +14,14 @@ IMAGE_PATH = os.path.join(DATA_DIR, 'screen-captures')
 DOG_IMAGE_PATH = os.path.join(DATA_DIR, 'dog-images')
 PREDICTIONS_CSV_PATH = os.path.join(DATA_DIR, 'predictions.csv')
 
-cap = cv2.VideoCapture(0)
 
 df = None
     
 def get_dataframe():
     global df
+
+    if df is not None:
+        return
 
     try:
         df = pd.read_csv(PREDICTIONS_CSV_PATH)
@@ -47,12 +50,6 @@ def save_dog_image(filename, image):
     filepath = get_dog_image_path(filename)
     cv2.imwrite(filepath, image)
 
-def get_image_from_cam():
-    ret, frame = cap.read()
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
-
-    return [frame, rgb]
-
 def get_numbers_from_string(text):
     numbers = [s for s in text if s.isdigit()]
     if len(numbers) == 0:
@@ -76,10 +73,7 @@ def get_most_recent_file_count():
     
     latest_file = max(list_of_files, key=os.path.getctime)
 
-    print('latest_file', latest_file)
-
     file_number_count = get_numbers_from_string(latest_file)
-    print('file_number_count', file_number_count)
 
     return file_number_count + 1
 
@@ -140,40 +134,26 @@ def format_image(image_raw):
     cropped_image = crop_image(image_raw)
     return cv2.resize(cropped_image, (224, 224))
 
-found_dogs_count = 0
-def main():
-    global found_dogs_count
-
+def scan_for_dogs(image_raw):
     ensure_directory_exists(IMAGE_PATH)
     ensure_directory_exists(DOG_IMAGE_PATH)
 
     get_dataframe()
 
-    count = get_most_recent_file_count()
-    print('Starting with file count {}'.format(count))
-    while(True):
-        print('count {}...found {} possible dogs'.format(count, found_dogs_count), end='\r')
-        image_raw, rgb = get_image_from_cam()
-        small_image = format_image(image_raw)
+    start_count = get_most_recent_file_count()
 
+    small_image = format_image(image_raw)
 
-        filename = 'image_{}.jpg'.format(count)
-        save_image(filename, small_image)
+    filename = 'image_{}.jpg'.format(start_count)
+    save_image(filename, small_image)
 
-        predictions = get_image_predictions(image_raw)
+    predictions = get_image_predictions(image_raw)
 
-        is_dog = is_dog_in_image_predictions(predictions)
-        if is_dog:
-            found_dogs_count += 1
-            save_dog_image(filename, image_raw)
+    is_dog = is_dog_in_image_predictions(predictions)
+    if is_dog:
+        save_dog_image(filename, image_raw)
 
-        save_predictions(filename, predictions, is_dog)
+    save_predictions(filename, predictions, is_dog)
 
+    return is_dog
 
-        count += 1
-        time.sleep(3)
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-main()
