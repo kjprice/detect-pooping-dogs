@@ -7,6 +7,7 @@ from flask import Flask, request
 from flask_cors import CORS
 
 from _misc import ensure_directory_exists
+from _scan_for_dogs import scan_for_dogs
 
 DATA_DIR = os.path.join('..', 'data')
 TEMP_IMAGE_DIR = os.path.join(DATA_DIR, 'temp-images')
@@ -52,4 +53,6 @@ def receiveNeweImage():
 
     image = get_actual_image(image_data)
 
-    return image_name
+    is_dog = scan_for_dogs(image)
+
+    return is_dog
