@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-import time
+import time, math, glob, os
 import cv2
-import os
 from datetime import datetime
-import glob
 
 import pandas as pd
 
@@ -49,11 +47,11 @@ def save_image(filename, image):
     filepath = get_normal_image_path(filename)
     img = cv2.resize(image, (224, 224))
 
-    out = cv2.imwrite(filepath, img)
+    cv2.imwrite(filepath, img)
 
 def save_dog_image(filename, image):
     filepath = get_dog_image_path(filename)
-    out = cv2.imwrite(filepath, image)
+    cv2.imwrite(filepath, image)
 
 def get_image_from_cam():
     ret, frame = cap.read()
@@ -120,6 +118,34 @@ def save_predictions(image_filename, predictions, is_dog):
 
     save_dataframe(df)
 
+# This turns an image into a perfect square
+def crop_image(image_raw):
+    height, width, colors = image_raw.shape
+
+    x = [0, width]
+    y = [0, height]
+    
+    if width > height:
+        diff = width - height
+        half_diff = math.ceil(diff / 2)
+        start_x = half_diff
+        end_x = height + half_diff
+        x = [start_x, end_x]
+    elif height > width:
+        diff = height - width
+        half_diff = math.ceil(diff / 2)
+        start_y = half_diff
+        end_y = width + half_diff
+        y = [start_y, end_y]
+
+    
+    return image_raw[y[0]:y[1], x[0]:x[1]]
+
+# This crops into the size that the neural network requires
+def format_image(image_raw):
+    cropped_image = crop_image(image_raw)
+    return cv2.resize(cropped_image, (224, 224))
+
 found_dogs_count = 0
 def main():
     global found_dogs_count
@@ -133,18 +159,19 @@ def main():
     print('Starting with file count {}'.format(count))
     while(True):
         print('count {}...found {} possible dogs'.format(count, found_dogs_count), end='\r')
-        frame, rgb = get_image_from_cam()
+        image_raw, rgb = get_image_from_cam()
+        small_image = format_image(image_raw)
 
-        # cv2.imshow('frame', rgb)
+
         filename = 'image_{}.jpg'.format(count)
-        save_image(filename, frame)
+        save_image(filename, small_image)
 
-        predictions = get_image_predictions(frame)
+        predictions = get_image_predictions(image_raw)
 
         is_dog = is_dog_in_image_predictions(predictions)
         if is_dog:
             found_dogs_count += 1
-            save_dog_image(filename, frame)
+            save_dog_image(filename, image_raw)
 
         save_predictions(filename, predictions, is_dog)
 
