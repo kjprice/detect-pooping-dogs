@@ -1,3 +1,4 @@
+#!/bin/sh
 # nodemon -e py -x 'python python/server.py'
 
 source ~/.bash_profile

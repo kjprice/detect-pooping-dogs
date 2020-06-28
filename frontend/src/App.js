@@ -2,18 +2,14 @@ import React, {Component} from 'react';
 import axios from 'axios';
 import './App.css';
 
-const URL = 'http://localhost:5000/newImage'
+const URL = '/newImage'
 
 const saveImageThrottleTime = 1000; // Wait one second before sending another image
 
-function getVideoMedia() {
-return navigator.mediaDevices.enumerateDevices()
+function getVideoDevices() {
+  return navigator.mediaDevices.enumerateDevices()
   .then((deviceInfos) => {
-    for (const deviceInfo of deviceInfos) {
-      if (deviceInfo.kind === 'videoinput') {
-        return deviceInfo;
-      }
-    }
+    return deviceInfos.filter(deviceInfo => deviceInfo.kind === 'videoinput')
   })
 }
 
@@ -24,10 +20,11 @@ function getStream(device) {
   const constraints = {
     video: {
       deviceId: {exact: deviceId},
-      width: {min: 1280}, height: {min: 720}
+      width: {ideal: 1280}, height: {ideal: 720}
     }
   };
   return navigator.mediaDevices.getUserMedia(constraints)
+  .catch(e => console.error(e))
 }
 
 class App extends Component {
@@ -35,18 +32,43 @@ class App extends Component {
     super(props);
 
     this.state = {
-      canSendImage: true
+      canSendImage: true,
+      devices: [],
+      selectedDevice: null,
+      countOfTimesDevicesFetched: 0
     };
   }
-  componentDidMount() {
-    getVideoMedia().then(deviceInfo => {
-      console.log(deviceInfo);
 
-      return getStream(deviceInfo)
-      .then(stream => {
-        this.video.srcObject = stream;
-      })
+  componentDidMount() {
+    this.requestDeviceInfos();
+  }
+
+  requestDeviceInfos = () => {
+    const { countOfTimesDevicesFetched} = this.state;
+    if (countOfTimesDevicesFetched >= 2) {
+      return;
+    }
+    getVideoDevices().then(devices => {
+      const selectedDevice = devices[0];
+      this.setState({
+        devices,
+        selectedDevice,
+        countOfTimesDevicesFetched: countOfTimesDevicesFetched +1
+      });
+      this.changeDeviceStream(selectedDevice)
     });
+  }
+
+  changeDeviceStream = (device) => {
+    const { selectedDevice } = this.state;
+
+    getStream(device).then(stream => {
+      if (!selectedDevice || !selectedDevice.deviceId) {
+        this.requestDeviceInfos();
+        return;
+      }
+      this.video.srcObject = stream;
+    })
   }
 
   setTimerForImageThrottle = () => {
@@ -79,7 +101,6 @@ class App extends Component {
     });
 
     axios.post(URL, fd, config).then(response => {
-      console.log('response', response);
       this.setTimerForImageThrottle();
     }).catch(error => {
       this.setTimerForImageThrottle();
@@ -94,6 +115,7 @@ class App extends Component {
   }
 
   setVideoRef = (video) => {
+    // video.play()
     this.video = video;
 
     video.addEventListener('loadedmetadata', this.trySetCanvasDimensions, false);
@@ -113,11 +135,39 @@ class App extends Component {
     this.canvas.width = this.video.videoWidth;
     this.canvas.height = this.video.videoHeight;
   }
+
+  videoSelectionChange = (e) => {
+    const { devices } = this.state;
+    const selectedDevice = devices.find((device) => device.deviceId === e.target.value);
+    this.setState({
+      selectedDevice
+    })
+    
+    this.changeDeviceStream(selectedDevice);
+  }
+
+  renderVideoOption = (device) => {
+    return <option key={device.deviceId} value={device.deviceId}>{device.label}</option>
+  }
+
+  renderVideoDropDown = () => {
+    const { devices, selectedDevice } = this.state;
+    if (!devices || devices.length === 0 || selectedDevice == null) {
+      return null;
+    }
+
+    return (
+      <select value={selectedDevice.deviceId} onChange={this.videoSelectionChange}>
+        {devices.map(this.renderVideoOption)}
+      </select>
+    )
+  }
   
   render() {
     return (
       <div className="App">
-        <video ref={this.setVideoRef} autoPlay></video>
+        {this.renderVideoDropDown()}
+        <video ref={this.setVideoRef} autoPlay loop muted playsInline></video>
         <canvas ref={this.setCanvasRef} />
       </div>
     );

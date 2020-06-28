@@ -46,12 +46,13 @@ def get_actual_image(temp_file):
 
 
 @app.route('/newImage', methods=['POST'])
-def receiveNeweImage():
+def receiveNewImage():
     default_name = 'bad_data'
     image_name = request.form.get('fname', default_name)
     image_data = request.files['image']
 
     image = get_actual_image(image_data)
+    # print('image', image.shape)
 
     is_dog = scan_for_dogs(image)
 
