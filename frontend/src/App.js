@@ -167,7 +167,12 @@ class App extends Component {
 
   renderVideoDropDown = () => {
     const { devices, selectedDevice } = this.state;
-    if (!devices || devices.length === 0 || selectedDevice == null) {
+    if (!devices || selectedDevice == null) {
+      return null;
+    }
+
+    // Need to have at least two devices to give user a choice
+    if (devices.length <= 1) {
       return null;
     }
 
