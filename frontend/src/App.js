@@ -72,6 +72,7 @@ class App extends Component {
         return;
       }
       this.video.srcObject = stream;
+      this.secondaryVideo.srcObject = stream;
     })
   }
 
@@ -118,12 +119,15 @@ class App extends Component {
     this.canvas.toBlob(this.saveFrame, 'image/jpeg');
   }
 
-  setVideoRef = (video) => {
-    // video.play()
+  setVideoMainRef = (video) => {
     this.video = video;
 
     video.addEventListener('loadedmetadata', this.trySetCanvasDimensions, false);
     video.addEventListener('timeupdate', this.drawFrame, false);
+  }
+
+  setVideoSecondaryRef = (video) => {
+    this.secondaryVideo = video;
   }
   
   setCanvasRef = (canvas) => {
@@ -178,8 +182,9 @@ class App extends Component {
     return (
       <div className="App">
         {this.renderVideoDropDown()}
-        <video ref={this.setVideoRef} autoPlay loop muted playsInline></video>
-        <canvas ref={this.setCanvasRef} />
+        <video ref={this.setVideoSecondaryRef} autoPlay loop muted playsInline  style={{width: '100%'}}></video>
+        <video ref={this.setVideoMainRef} autoPlay loop muted playsInline  style={{visibility: 'hidden'}}></video>
+        <canvas ref={this.setCanvasRef} style={{visibility: 'hidden'}} />
       </div>
     );
   }
