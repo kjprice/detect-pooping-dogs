@@ -43,6 +43,10 @@ class App extends Component {
     this.requestDeviceInfos();
   }
 
+  componentDidUpdate = () => {
+    this.trySetCanvasDimensions();
+  }
+
   requestDeviceInfos = () => {
     const { countOfTimesDevicesFetched} = this.state;
     if (countOfTimesDevicesFetched >= 2) {
@@ -129,6 +133,13 @@ class App extends Component {
 
   trySetCanvasDimensions = () => {
     if (!this.canvas || !this.video) {
+      return;
+    }
+
+    const widthTheSame = this.canvas.width === this.video.videoWidth;
+    const heightTheSame = this.canvas.height === this.video.videoHeight;
+
+    if (widthTheSame && heightTheSame) {
       return;
     }
 
