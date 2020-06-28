@@ -20,9 +20,9 @@ def main():
         print('count {}...found {} possible dogs'.format(count, found_dogs_count), end='\r')
         image_raw, rgb = get_image_from_cam()
 
-        is_dog = scan_for_dogs(image_raw)
+        is_dog_response = scan_for_dogs(image_raw)
 
-        if is_dog:
+        if is_dog_response is not None:
             found_dogs_count += 1
 
 

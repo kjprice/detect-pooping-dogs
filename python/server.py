@@ -1,4 +1,4 @@
-import os
+import os, json
 from datetime import datetime
 
 import cv2
@@ -47,6 +47,7 @@ def get_actual_image(temp_file):
 
 @app.route('/newImage', methods=['POST'])
 def receiveNewImage():
+    print('Received Message - creating prediction')
     default_name = 'bad_data'
     image_name = request.form.get('fname', default_name)
     image_data = request.files['image']
@@ -54,6 +55,16 @@ def receiveNewImage():
     image = get_actual_image(image_data)
     # print('image', image.shape)
 
-    is_dog = scan_for_dogs(image)
+    is_dog_response = scan_for_dogs(image)
+
+    if is_dog_response is None:
+        return ''
+    
+    print('Found a dog: ', is_dog_response)
+
+    return json.dumps(is_dog_response)
+
+
+    print('All done')
 
     return image_name

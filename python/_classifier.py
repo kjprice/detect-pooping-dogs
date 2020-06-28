@@ -28,10 +28,25 @@ def name_exists_in_hypernym(name, syn):
     
     return False
 
+dog_name_cache = {}
+def get_dog_name_cache(prediction_name):
+    if prediction_name in dog_name_cache.keys():
+        return dog_name_cache[prediction_name]
+    
+    return None
+
+def set_dog_name_cache(prediction_name, is_dog = False):
+    dog_name_cache[prediction_name] = is_dog
+
 def is_dog_in_image_prediction(prediction):
     prediction_name = prediction[1]
+
+    prediction_from_cache = get_dog_name_cache(prediction_name)
+    if prediction_from_cache is not None:
+        return prediction_from_cache
     
     if 'dog' in prediction_name:
+        set_dog_name_cache(prediction_name, True)
         return True
     
     synsets = wordnet.synsets(prediction_name)
@@ -40,14 +55,15 @@ def is_dog_in_image_prediction(prediction):
     
     for syn in synsets:
         if name_exists_in_hypernym('dog', syn):
+            set_dog_name_cache(prediction_name, True)
             return True
     return False
 
 def is_dog_in_image_predictions(image_predictions):
     for prediction in image_predictions:
         if is_dog_in_image_prediction(prediction):
-            return True
-    return False
+            return [True, prediction]
+    return [False, []]
     
 
     

@@ -38,5 +38,6 @@ ngrok http 3000
 This is ran using flask, you can just run `./bin/develop-flask.sh`
 
 # TODO
- - Maybe crop the images in several different places and run the prediction algorithm on these slices (to give higher res to images)
  - On Front end make it so that there are only 3 web requests at any given time - throttle requests when there are too many requests
+ - Setup a UI to see the images (and their predictions)
+ - Split python scripts into multiple cores - one script is the flask server and saves the raw images - the other scripts pull from the raw image folder and makes predictions
