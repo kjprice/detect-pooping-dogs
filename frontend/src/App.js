@@ -4,7 +4,7 @@ import './App.css';
 
 const URL = '/newImage'
 
-const saveImageThrottleTime = 1000; // Wait one second before sending another image
+const saveImageThrottleTime = 3000; // Wait three seconds before sending another image
 
 function getVideoDevices() {
   return navigator.mediaDevices.enumerateDevices()
@@ -72,7 +72,6 @@ class App extends Component {
         return;
       }
       this.video.srcObject = stream;
-      this.secondaryVideo.srcObject = stream;
     })
   }
 
@@ -105,10 +104,10 @@ class App extends Component {
       canSendImage: false
     });
 
+    this.setTimerForImageThrottle();
     axios.post(URL, fd, config).then(response => {
-      this.setTimerForImageThrottle();
+      console.log({response})
     }).catch(error => {
-      this.setTimerForImageThrottle();
       console.log('error', error)
     })
   }
@@ -124,10 +123,6 @@ class App extends Component {
 
     video.addEventListener('loadedmetadata', this.trySetCanvasDimensions, false);
     video.addEventListener('timeupdate', this.drawFrame, false);
-  }
-
-  setVideoSecondaryRef = (video) => {
-    this.secondaryVideo = video;
   }
   
   setCanvasRef = (canvas) => {
@@ -187,9 +182,8 @@ class App extends Component {
     return (
       <div className="App">
         {this.renderVideoDropDown()}
-        <video ref={this.setVideoSecondaryRef} autoPlay loop muted playsInline  style={{width: '100%'}}></video>
-        <video ref={this.setVideoMainRef} autoPlay loop muted playsInline  style={{visibility: 'hidden'}}></video>
-        <canvas ref={this.setCanvasRef} style={{visibility: 'hidden'}} />
+        <video ref={this.setVideoMainRef} autoPlay loop muted playsInline></video>
+        <canvas ref={this.setCanvasRef} />
       </div>
     );
   }
