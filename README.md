@@ -14,33 +14,29 @@ To use specific pretrained networks: https://keras.io/api/applications/
 
 I had to crop the images (to be square) and resize the images (to be 224/224) to work with ResNet50
 
-# TODO: Describe how to run the flask server, describe how to run the front end code
-# TODO: Maybe use python simple server to serve static local files
-# TODO: Maybe crop the images in several different places and run the prediction algorithm on these slices (to give higher res to images)
-
 ## Create SSL Certificate
 
 I followed the instructions [here](https://www.freecodecamp.org/news/how-to-get-https-working-on-your-local-development-environment-in-5-minutes-7af615770eec/). I used the password "test".
 
 ## Start Front End Server
 
-Install software to serve https:
-```
-npm install -g git+ssh://git@git.daplie.com:Daplie/serve-https
-```
-
-To make the front end code available on port 1820 on your local (and network):
-
-```
-cd frontend
-npm run build
-serve -s build -p 1820
-```
-
-To develop the front end:
+To develop the front end (currently there is no production setup):
 
 ```
 cd frontend
 npm start
 ```
 
+Use ngrok to get https access (note that we have a proxy for the backend on port 5000)
+
+```
+ngrok http 3000
+```
+
+## Start Back End Server
+
+This is ran using flask, you can just run `./bin/develop-flask.sh`
+
+# TODO
+ - Maybe crop the images in several different places and run the prediction algorithm on these slices (to give higher res to images)
+ - On Front end make it so that there are only 3 web requests at any given time - throttle requests when there are too many requests
