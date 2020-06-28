@@ -7,11 +7,9 @@ import cv2
 import pandas as pd
 
 from _classifier import get_image_predictions, is_dog_in_image_predictions
-from _misc import ensure_directory_exists
+from _misc import ensure_directory_exists, go_to_script_directory
 
-script_directory = os.path.dirname(os.path.realpath(__file__))
-os.chdir(script_directory)
-
+go_to_script_directory()
 
 DATA_DIR = os.path.join('..', 'data')
 IMAGE_PATH = os.path.join(DATA_DIR, 'screen-captures')
