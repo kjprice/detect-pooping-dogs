@@ -6,12 +6,11 @@ import cv2
 from flask import Flask, request
 from flask_cors import CORS
 
-from _misc import ensure_directory_exists
-from _scan_for_dogs import scan_for_dogs
+from _misc import ensure_directory_exists, go_to_script_directory
 
-DATA_DIR = os.path.join('..', 'data')
-TEMP_IMAGE_DIR = os.path.join(DATA_DIR, 'temp-images')
+from _constants import TEMP_IMAGE_DIR
 
+go_to_script_directory()
 ensure_directory_exists(TEMP_IMAGE_DIR)
 
 app = Flask(__name__)
@@ -52,19 +51,6 @@ def receiveNewImage():
     image_name = request.form.get('fname', default_name)
     image_data = request.files['image']
 
-    image = get_actual_image(image_data)
-    # print('image', image.shape)
+    save_temporary_image(image_data)
 
-    is_dog_response = scan_for_dogs(image)
-
-    if is_dog_response is None:
-        return ''
-    
-    print('Found a dog: ', is_dog_response)
-
-    return json.dumps(is_dog_response)
-
-
-    print('All done')
-
-    return image_name
+    return ''

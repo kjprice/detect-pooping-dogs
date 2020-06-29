@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import math, glob, os
+import math, os
 from datetime import datetime
 import time
 
@@ -8,7 +8,7 @@ import cv2
 import pandas as pd
 
 from _classifier import get_image_predictions, is_dog_in_image_predictions
-from _misc import ensure_directory_exists, go_to_script_directory
+from _misc import ensure_directory_exists, go_to_script_directory, get_most_recent_file
 
 go_to_script_directory()
 
@@ -23,6 +23,9 @@ RUN_TESTS = (__name__ == "__main__")
 SAVE_IMAGE_PIECES = RUN_TESTS
 
 df = None
+
+REQUIRED_CONFIDENCE_FOR_DOG = 0.25 # 25% confidence
+HIGH_CONFIDENCE_FOR_DOG = 0.75
 
 def get_dataframe():
     global df
@@ -66,23 +69,19 @@ def get_numbers_from_string(text):
 
     return int(numbers_joined)
 
-
-def get_most_recent_file_count():
-    try:
-        glob_filepath = os.path.join(IMAGE_PATH, '*')
-        list_of_files = glob.glob(glob_filepath)
-    except Exception as e:
-        print(e)
+def get_most_recent_file_count(filepath):
+    latest_file = get_most_recent_file(filepath)
+    if latest_file is None:
         return 0
-    
-    if len(list_of_files) == 0:
-        return 0
-    
-    latest_file = max(list_of_files, key=os.path.getctime)
 
     file_number_count = get_numbers_from_string(latest_file)
-
     return file_number_count + 1
+
+def get_starting_file_count():
+    dog_file_count = get_most_recent_file_count(DOG_IMAGE_PATH)
+    non_dog_file_count = get_most_recent_file_count(IMAGE_PATH)
+
+    return max(dog_file_count, non_dog_file_count)
 
 
 
@@ -252,7 +251,8 @@ def get_dog_prediction(image_raw):
                 max_dog_prediction_score = float(prediction_score)
                 max_dog_prediction_name = prediction_name
     
-    if max_dog_prediction_score == 0:
+    # Minimum threshold for a doggie
+    if max_dog_prediction_score < REQUIRED_CONFIDENCE_FOR_DOG:
         return None
 
     predicted_items = []
@@ -267,7 +267,6 @@ def get_dog_prediction(image_raw):
     
 
 def scan_for_dogs(image_raw):
-    start = time.time()
     ensure_directory_exists(IMAGE_PATH)
     ensure_directory_exists(DOG_IMAGE_PATH)
     ensure_directory_exists(IMAGES_PIECES_PATH)
@@ -275,7 +274,7 @@ def scan_for_dogs(image_raw):
     
     dog_prediction = get_dog_prediction(image_raw)
 
-    start_count = get_most_recent_file_count()
+    start_count = get_starting_file_count()
     filename = 'image_{}.jpg'.format(start_count)
     if dog_prediction is None:
         small_image = format_image(image_raw)
