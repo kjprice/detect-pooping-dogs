@@ -4,7 +4,7 @@ import './App.css';
 
 const URL = '/newImage'
 
-const saveImageThrottleTime = 3000; // Wait three seconds before sending another image
+const saveImageThrottleTime = 6000; // Wait six seconds before sending another image
 
 function getVideoDevices() {
   return navigator.mediaDevices.enumerateDevices()
