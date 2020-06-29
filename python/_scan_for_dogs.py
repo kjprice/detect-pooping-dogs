@@ -15,7 +15,10 @@ go_to_script_directory()
 DATA_DIR = os.path.join('..', 'data')
 IMAGE_PATH = os.path.join(DATA_DIR, 'screen-captures')
 IMAGES_PIECES_PATH = os.path.join(DATA_DIR, 'image-pieces')
+
 DOG_IMAGE_PATH = os.path.join(DATA_DIR, 'dog-images')
+HIGH_QUALITY_DOG_IMAGE_PATH = os.path.join(DATA_DIR, 'dog-images-high-quality')
+
 PREDICTIONS_CSV_PATH = os.path.join(DATA_DIR, 'predictions.csv')
 
 RUN_TESTS = (__name__ == "__main__")
@@ -47,8 +50,13 @@ def save_dataframe(df):
 def get_normal_image_path(image_name):
     return os.path.join(IMAGE_PATH, image_name)
 
-def get_dog_image_path(image_name):
-    return os.path.join(DOG_IMAGE_PATH, image_name)
+def get_dog_image_path(image_name, high_quality=False):
+    path = None
+    if high_quality:
+        path = HIGH_QUALITY_DOG_IMAGE_PATH
+    else:
+        path = DOG_IMAGE_PATH
+    return os.path.join(path, image_name)
 
 def save_image(filename, image):
     filepath = get_normal_image_path(filename)
@@ -56,8 +64,8 @@ def save_image(filename, image):
 
     cv2.imwrite(filepath, img)
 
-def save_dog_image(filename, image):
-    filepath = get_dog_image_path(filename)
+def save_dog_image(filename, image, high_quality=False):
+    filepath = get_dog_image_path(filename, high_quality)
     cv2.imwrite(filepath, image)
 
 def get_numbers_from_string(text):
@@ -272,6 +280,7 @@ def get_date():
 def scan_for_dogs(image_raw, date_string = None):
     ensure_directory_exists(IMAGE_PATH)
     ensure_directory_exists(DOG_IMAGE_PATH)
+    ensure_directory_exists(HIGH_QUALITY_DOG_IMAGE_PATH)
     ensure_directory_exists(IMAGES_PIECES_PATH)
 
     
@@ -287,6 +296,9 @@ def scan_for_dogs(image_raw, date_string = None):
     max_dog_prediction_score, max_dog_prediction_name, predicted_items = dog_prediction
 
     get_dataframe()
+
+    if max_dog_prediction_score >= HIGH_CONFIDENCE_FOR_DOG:
+        save_dog_image(filename, image_raw, high_quality=True)
 
     save_dog_image(filename, image_raw)
 
