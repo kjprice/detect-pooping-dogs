@@ -14,6 +14,14 @@ def get_image_and_delete(path):
 
     return img
 
+# Takes a string like "../data/../2020-06-28_21:01:53.jpg" and turns it into "2020/06/28 21:04:01"
+def get_date_from_file_name(filepath):
+    filename = filepath.split(os.path.sep)[-1]
+    date_time_string = filename.split('.')[0] \
+        .replace('_', ' ') \
+        .replace('-', '/')
+
+    return date_time_string
     
 
 dogs_found = 0
@@ -29,10 +37,12 @@ def scan_for_dogs_continuously():
             continue
         print('Previously found {} dog images out of {} total images. Found {} images waiting for processing. Processing oldest now...'.format(dogs_found, files_ran, file_count), end='\r')
 
-        oldest_file = get_oldest_file(TEMP_IMAGE_DIR)
+        oldest_file_name = get_oldest_file(TEMP_IMAGE_DIR)
 
-        img = get_image_and_delete(oldest_file)
-        response = scan_for_dogs(img)
+        date_string = get_date_from_file_name(oldest_file_name)
+
+        img = get_image_and_delete(oldest_file_name)
+        response = scan_for_dogs(img, date_string)
         if response is not None:
             dogs_found += 1
         files_ran += 1

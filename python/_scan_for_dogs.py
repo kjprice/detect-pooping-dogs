@@ -85,14 +85,12 @@ def get_starting_file_count():
 
 
 
-def create_dataframe_row(image_filename, max_dog_prediction_score, max_dog_prediction_name, predicted_items):
-    now = datetime.now()
-    dt_string = now.strftime("%Y/%m/%d %H:%M:%S")
-
+def create_dataframe_row(image_filename, max_dog_prediction_score, max_dog_prediction_name, predicted_items, date_string):
     df_dict = {
         'filename': [image_filename],
         'dog_score': [max_dog_prediction_score],
-        'dog_name': [max_dog_prediction_name]
+        'dog_name': [max_dog_prediction_name],
+        'date': date_string
     }
 
     for i, prediction in enumerate(predicted_items):
@@ -103,9 +101,9 @@ def create_dataframe_row(image_filename, max_dog_prediction_score, max_dog_predi
 
     return df_record
 
-def save_predictions(filename, max_dog_prediction_score, max_dog_prediction_name, predicted_items):
+def save_predictions(filename, max_dog_prediction_score, max_dog_prediction_name, predicted_items, date_string):
     global df
-    new_df = create_dataframe_row(filename, max_dog_prediction_score, max_dog_prediction_name, predicted_items)
+    new_df = create_dataframe_row(filename, max_dog_prediction_score, max_dog_prediction_name, predicted_items, date_string)
 
     df = pd.concat([df, new_df], sort=False)
     
@@ -264,9 +262,14 @@ def get_dog_prediction(image_raw):
         })
 
     return [max_dog_prediction_score, max_dog_prediction_name, predicted_items]
-    
 
-def scan_for_dogs(image_raw):
+def get_date():
+    now = datetime.now()
+    dt_string = now.strftime("%Y/%m/%d %H:%M:%S")
+
+    return dt_string
+
+def scan_for_dogs(image_raw, date_string = None):
     ensure_directory_exists(IMAGE_PATH)
     ensure_directory_exists(DOG_IMAGE_PATH)
     ensure_directory_exists(IMAGES_PIECES_PATH)
@@ -287,11 +290,13 @@ def scan_for_dogs(image_raw):
 
     save_dog_image(filename, image_raw)
 
-    save_predictions(filename, max_dog_prediction_score, max_dog_prediction_name, predicted_items)
+    if date_string is None:
+        date_string = get_date()
+
+    save_predictions(filename, max_dog_prediction_score, max_dog_prediction_name, predicted_items, date_string)
     end = time.time()
 
     return [max_dog_prediction_name, max_dog_prediction_score]
-
 
 
 def run_test():

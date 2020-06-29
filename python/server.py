@@ -18,7 +18,7 @@ CORS(app)
 
 def create_filename():
     now = datetime.now()
-    dt_string = now.strftime("%Y-%m--%d_%H:%M:%S")
+    dt_string = now.strftime("%Y-%m-%d_%H:%M:%S")
 
     return '{}.jpg'.format(dt_string)
 
