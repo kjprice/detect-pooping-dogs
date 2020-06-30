@@ -1,3 +1,5 @@
+![Pooping Doggie](https://raw.githubusercontent.com/kjprice/detect-pooping-dogs/master/data/test-images/dog-pooping.jpg)
+
 # Find The Doggy
 
 This project was created after a doggy kept pooping in our yard. This is an attempt to find the doggy so that maybe its owner will clean up after it at least.
