@@ -16,8 +16,9 @@ DATA_DIR = os.path.join('..', 'data')
 IMAGE_PATH = os.path.join(DATA_DIR, 'screen-captures')
 IMAGES_PIECES_PATH = os.path.join(DATA_DIR, 'image-pieces')
 
-DOG_IMAGE_PATH = os.path.join(DATA_DIR, 'dog-images')
-HIGH_QUALITY_DOG_IMAGE_PATH = os.path.join(DATA_DIR, 'dog-images-high-quality')
+MAYBE_IMAGE_PATH = os.path.join(DATA_DIR, 'dog-images-maybe')
+PROBABLY_IMAGE_PATH = os.path.join(DATA_DIR, 'dog-images-probably')
+DEFINITELY_DOG_IMAGE_PATH = os.path.join(DATA_DIR, 'dog-images-definitely')
 
 PREDICTIONS_CSV_PATH = os.path.join(DATA_DIR, 'predictions.csv')
 
@@ -27,8 +28,9 @@ SAVE_IMAGE_PIECES = RUN_TESTS
 
 df = None
 
-REQUIRED_CONFIDENCE_FOR_DOG = 0.25 # 25% confidence
-HIGH_CONFIDENCE_FOR_DOG = 0.75
+LOW_CONFIDENCE_FOR_DOG = 0.10 # 10% confidence
+MEDIUM_CONFIDENCE_FOR_DOG = 0.25 # 25% confidence
+HIGH_CONFIDENCE_FOR_DOG = 0.50
 
 def get_dataframe():
     global df
@@ -50,13 +52,17 @@ def save_dataframe(df):
 def get_normal_image_path(image_name):
     return os.path.join(IMAGE_PATH, image_name)
 
-def get_dog_image_path(image_name, high_quality=False):
-    path = None
-    if high_quality:
-        path = HIGH_QUALITY_DOG_IMAGE_PATH
-    else:
-        path = DOG_IMAGE_PATH
-    return os.path.join(path, image_name)
+def get_dog_image_paths(image_name, confidence):
+    paths = []
+
+    if confidence >= LOW_CONFIDENCE_FOR_DOG:
+        paths.append(MAYBE_IMAGE_PATH)
+    if confidence >= MEDIUM_CONFIDENCE_FOR_DOG:
+        paths.append(PROBABLY_IMAGE_PATH)
+    if confidence >= HIGH_CONFIDENCE_FOR_DOG:
+        paths.append(DEFINITELY_DOG_IMAGE_PATH)
+
+    return [os.path.join(path, image_name) for path in paths]
 
 def save_image(filename, image):
     filepath = get_normal_image_path(filename)
@@ -64,9 +70,11 @@ def save_image(filename, image):
 
     cv2.imwrite(filepath, img)
 
-def save_dog_image(filename, image, high_quality=False):
-    filepath = get_dog_image_path(filename, high_quality)
-    cv2.imwrite(filepath, image)
+def save_dog_images(filename, image, confidence):
+    filepaths = get_dog_image_paths(filename, confidence)
+
+    for filepath in filepaths:
+        cv2.imwrite(filepath, image)
 
 def get_numbers_from_string(text):
     numbers = [s for s in text if s.isdigit()]
@@ -86,7 +94,7 @@ def get_most_recent_file_count(filepath):
     return file_number_count + 1
 
 def get_starting_file_count():
-    dog_file_count = get_most_recent_file_count(DOG_IMAGE_PATH)
+    dog_file_count = get_most_recent_file_count(MAYBE_IMAGE_PATH)
     non_dog_file_count = get_most_recent_file_count(IMAGE_PATH)
 
     return max(dog_file_count, non_dog_file_count)
@@ -258,7 +266,7 @@ def get_dog_prediction(image_raw):
                 max_dog_prediction_name = prediction_name
     
     # Minimum threshold for a doggie
-    if max_dog_prediction_score < REQUIRED_CONFIDENCE_FOR_DOG:
+    if max_dog_prediction_score < LOW_CONFIDENCE_FOR_DOG:
         return None
 
     predicted_items = []
@@ -279,8 +287,11 @@ def get_date():
 
 def scan_for_dogs(image_raw, date_string = None):
     ensure_directory_exists(IMAGE_PATH)
-    ensure_directory_exists(DOG_IMAGE_PATH)
-    ensure_directory_exists(HIGH_QUALITY_DOG_IMAGE_PATH)
+
+    ensure_directory_exists(MAYBE_IMAGE_PATH)
+    ensure_directory_exists(PROBABLY_IMAGE_PATH)
+    ensure_directory_exists(DEFINITELY_DOG_IMAGE_PATH)
+    
     ensure_directory_exists(IMAGES_PIECES_PATH)
 
     
@@ -297,10 +308,7 @@ def scan_for_dogs(image_raw, date_string = None):
 
     get_dataframe()
 
-    if max_dog_prediction_score >= HIGH_CONFIDENCE_FOR_DOG:
-        save_dog_image(filename, image_raw, high_quality=True)
-
-    save_dog_image(filename, image_raw)
+    save_dog_images(filename, image_raw, max_dog_prediction_score)
 
     if date_string is None:
         date_string = get_date()
